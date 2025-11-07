@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Docker Practice App</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        padding: 40px;
+        max-width: 600px;
+        width: 100%;
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      .docker-logo {
+        text-align: center;
+        font-size: 60px;
+        margin-bottom: 20px;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+      }
+
+      .info-box {
+        background: #f8f9fa;
+        border-left: 4px solid #667eea;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+      }
+
+      .info-box h3 {
+        color: #667eea;
+        margin-bottom: 10px;
+      }
+
+      .info-box p {
+        color: #555;
+        line-height: 1.6;
+      }
+
+      .counter-section {
+        text-align: center;
+        margin: 30px 0;
+      }
+
+      .counter {
+        font-size: 48px;
+        font-weight: bold;
+        color: #667eea;
+        margin: 20px 0;
+      }
+
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        font-size: 16px;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin: 5px;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      .footer {
+        text-align: center;
+        margin-top: 30px;
+        color: #999;
+        font-size: 14px;
+      }
+
+      code {
+        background: #2d3748;
+        color: #68d391;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: "Courier New", monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="docker-logo">🐳</div>
+      <h1>Docker Practice App</h1>
+      <p class="subtitle">Prosta aplikacja do nauki konteneryzacji</p>
+
+      <div class="info-box">
+        <h3>📦 Informacje o aplikacji</h3>
+        <p>
+          Ta strona została stworzona do ćwiczenia Dockera. Możesz ją łatwo
+          skonteneryzować i uruchomić!
+        </p>
+      </div>
+
+      <div class="counter-section">
+        <h3>Licznik kliknięć:</h3>
+        <div class="counter" id="counter">0</div>
+        <button onclick="increment()">➕ Zwiększ</button>
+        <button onclick="decrement()">➖ Zmniejsz</button>
+        <button onclick="reset()">🔄 Reset</button>
+      </div>
+
+      <div class="info-box">
+        <h3>🚀 Jak uruchomić w Dockerze?</h3>
+        <p>
+          1. Stwórz plik <code>Dockerfile</code><br />
+          2. Zbuduj obraz: <code>docker build -t my-app .</code><br />
+          3. Uruchom kontener: <code>docker run -p 8080:80 my-app</code>
+        </p>
+      </div>
+
+      <div class="footer">
+        <p>Wersja aplikacji: 1.0.0 | Port: 80</p>
+      </div>
+    </div>
+
+    <script>
+      let count = 0;
+      const counterElement = document.getElementById("counter");
+
+      function increment() {
+        count++;
+        updateCounter();
+      }
+
+      function decrement() {
+        count--;
+        updateCounter();
+      }
+
+      function reset() {
+        count = 0;
+        updateCounter();
+      }
+
+      function updateCounter() {
+        counterElement.textContent = count;
+        counterElement.style.transform = "scale(1.2)";
+        setTimeout(() => {
+          counterElement.style.transform = "scale(1)";
+        }, 200);
+      }
+
+      counterElement.style.transition = "transform 0.2s";
+    </script>
+  </body>
+</html>
