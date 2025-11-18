@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Docker Practice App</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        padding: 40px;
+        max-width: 600px;
+        width: 100%;
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      .docker-logo {
+        text-align: center;
+        font-size: 60px;
+        margin-bottom: 20px;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+      }
+
+      .info-box {
+        background: #f8f9fa;
+        border-left: 4px solid #667eea;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+      }
+
+      .info-box h3 {
+        color: #667eea;
+        margin-bottom: 10px;
+      }
+
+      .info-box p {
+        color: #555;
+        line-height: 1.6;
+      }
+
+      .counter-section {
+        text-align: center;
+        margin: 30px 0;
+      }
+
+      .counter {
+        font-size: 48px;
+        font-weight: bold;
+        color: #667eea;
+        margin: 20px 0;
+      }
+
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        font-size: 16px;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin: 5px;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .footer {
+        text-align: center;
+        margin-top: 30px;
+        color: #999;
+        font-size: 14px;
+      }
+
+      code {
+        background: #2d3748;
+        color: #68d391;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: "Courier New", monospace;
+      }
+
+      .status {
+        text-align: center;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        font-weight: bold;
+      }
+
+      .status.connected {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status.disconnected {
+        background: #f8d7da;
+        color: #721c24;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="docker-logo">🐳</div>
+      <h1>Docker Practice App</h1>
+      <p class="subtitle">Aplikacja z backendem i bazą danych MySQL</p>
+
+      <div id="status" class="status disconnected">
+        🔴 Łączenie z serwerem...
+      </div>
+
+      <div class="info-box">
+        <h3>📦 Informacje o aplikacji</h3>
+        <p>
+          Aplikacja składa się z 3 kontenerów Docker: Frontend (Apache httpd),
+          Backend (Node.js), oraz baza danych (MySQL 8.0). Licznik jest
+          zapisywany w bazie danych!
+        </p>
+      </div>
+
+      <div class="counter-section">
+        <h3>Licznik kliknięć (zapisywany w MySQL):</h3>
+        <div class="counter" id="counter">0</div>
+        <button onclick="increment()" id="btnIncrement">➕ Zwiększ</button>
+        <button onclick="decrement()" id="btnDecrement">➖ Zmniejsz</button>
+        <button onclick="reset()" id="btnReset">🔄 Reset</button>
+      </div>
+
+      <div class="info-box">
+        <h3>🚀 Jak uruchomić?</h3>
+        <p>
+          1. Upewnij się, że masz zainstalowany Docker i Docker Compose<br />
+          2. W głównym katalogu uruchom: <code>docker-compose up --build</code
+          ><br />
+          3. Otwórz przeglądarkę: <code>http://localhost:8080</code><br />
+          4. Aby zatrzymać: <code>docker-compose down</code>
+        </p>
+      </div>
+
+      <div class="footer">
+        <p>| Wersja aplikacji: 2.0.0 |</p>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = "http://localhost:3000/api";
+      const counterElement = document.getElementById("counter");
+      const statusElement = document.getElementById("status");
+      const buttons = [
+        document.getElementById("btnIncrement"),
+        document.getElementById("btnDecrement"),
+        document.getElementById("btnReset"),
+      ];
+
+      // Pobranie aktualnej wartości licznika z backendu
+      async function loadCounter() {
+        try {
+          const response = await fetch(`${API_URL}/counter`);
+          const data = await response.json();
+          counterElement.textContent = data.value;
+          updateStatus(true);
+        } catch (error) {
+          console.error("Błąd ładowania licznika:", error);
+          updateStatus(false);
+        }
+      }
+
+      // Aktualizacja statusu połączenia
+      function updateStatus(connected) {
+        if (connected) {
+          statusElement.textContent = "🟢 Połączono z serwerem";
+          statusElement.className = "status connected";
+          buttons.forEach((btn) => (btn.disabled = false));
+        } else {
+          statusElement.textContent = "🔴 Brak połączenia z serwerem";
+          statusElement.className = "status disconnected";
+          buttons.forEach((btn) => (btn.disabled = true));
+        }
+      }
+
+      // Animacja licznika
+      function animateCounter() {
+        counterElement.style.transform = "scale(1.2)";
+        setTimeout(() => {
+          counterElement.style.transform = "scale(1)";
+        }, 200);
+      }
+
+      // Zwiększ licznik
+      async function increment() {
+        try {
+          const response = await fetch(`${API_URL}/counter/increment`, {
+            method: "POST",
+          });
+          const data = await response.json();
+          counterElement.textContent = data.value;
+          animateCounter();
+          updateStatus(true);
+        } catch (error) {
+          console.error("Błąd zwiększania licznika:", error);
+          updateStatus(false);
+        }
+      }
+
+      // Zmniejsz licznik
+      async function decrement() {
+        try {
+          const response = await fetch(`${API_URL}/counter/decrement`, {
+            method: "POST",
+          });
+          const data = await response.json();
+          counterElement.textContent = data.value;
+          animateCounter();
+          updateStatus(true);
+        } catch (error) {
+          console.error("Błąd zmniejszania licznika:", error);
+          updateStatus(false);
+        }
+      }
+
+      // Resetuj licznik
+      async function reset() {
+        try {
+          const response = await fetch(`${API_URL}/counter/reset`, {
+            method: "POST",
+          });
+          const data = await response.json();
+          counterElement.textContent = data.value;
+          animateCounter();
+          updateStatus(true);
+        } catch (error) {
+          console.error("Błąd resetowania licznika:", error);
+          updateStatus(false);
+        }
+      }
+
+      // Dodanie transition dla animacji
+      counterElement.style.transition = "transform 0.2s";
+
+      // Załaduj licznik przy starcie
+      loadCounter();
+
+      setInterval(loadCounter, 5000);
+    </script>
+  </body>
+</html>

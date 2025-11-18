@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: counter-mysql-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=counter_db
+      - MYSQL_USER=counter_user
+      - MYSQL_PASSWORD=counterpass
+    ports:
+      - "3306:3306"
+    networks:
+      - counter-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: counter-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=mysql-db
+      - DB_USER=counter_user
+      - DB_PASSWORD=counterpass
+      - DB_NAME=counter_db
+      - DB_PORT=3306
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    networks:
+      - counter-network
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: counter-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - counter-network
+    restart: unless-stopped
+
+networks:
+  counter-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
