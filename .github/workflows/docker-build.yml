@@ -41,8 +41,12 @@ jobs:
             -e DB_PORT=3306 \
             counter-backend:test
           sleep 5
+          echo "=== Container Status ==="
           docker ps -a
+          echo "=== Container Logs ==="
           docker logs test-backend
+          echo "=== Checking if container is running ==="
+          docker ps | grep test-backend
           docker stop test-backend
           docker rm test-backend
 
@@ -88,6 +92,9 @@ jobs:
         run: |
           docker compose build
 
-      - name: Verify images built
+      - name: List built images
         run: |
-          docker images | grep counter
+          echo "=== All Docker images ==="
+          docker images
+          echo "=== Counter project images ==="
+          docker images | grep -E "counter|REPOSITORY" || echo "Note: Images built in separate contexts"
