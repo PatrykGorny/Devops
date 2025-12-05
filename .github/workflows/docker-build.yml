@@ -1,0 +1,91 @@
+name: Docker Build Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-backend:
+    name: Build Backend Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: false
+          tags: counter-backend:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test Backend Image
+        run: |
+          docker run -d --name test-backend -p 3000:3000 \
+            -e DB_HOST=localhost \
+            -e DB_USER=test \
+            -e DB_PASSWORD=test \
+            -e DB_NAME=test_db \
+            -e DB_PORT=3306 \
+            counter-backend:test
+          sleep 5
+          docker ps -a
+          docker logs test-backend
+          docker stop test-backend
+          docker rm test-backend
+
+  build-frontend:
+    name: Build Frontend Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: false
+          tags: counter-frontend:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test Frontend Image
+        run: |
+          docker run -d --name test-frontend -p 8080:80 counter-frontend:test
+          sleep 3
+          curl -f http://localhost:8080 || exit 1
+          docker stop test-frontend
+          docker rm test-frontend
+
+  build-docker-compose:
+    name: Build with Docker Compose
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build with Docker Compose
+        run: |
+          docker-compose build
+
+      - name: Verify images built
+        run: |
+          docker images | grep counter
