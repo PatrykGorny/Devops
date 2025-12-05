@@ -26,6 +26,7 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile
           push: false
+          load: true
           tags: counter-backend:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -62,6 +63,7 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: false
+          load: true
           tags: counter-frontend:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -84,7 +86,7 @@ jobs:
 
       - name: Build with Docker Compose
         run: |
-          docker-compose build
+          docker compose build
 
       - name: Verify images built
         run: |
