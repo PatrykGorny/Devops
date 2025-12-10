@@ -1,5 +1,4 @@
 name: Application Build & Deploy
-
 on:
   push:
     branches:
@@ -7,40 +6,32 @@ on:
   pull_request:
     branches:
       - main
-
 # Uprawnienia do deploymentu na GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
-
 # Tylko jeden deployment na raz
 concurrency:
   group: "pages"
   cancel-in-progress: false
-
 jobs:
   build-backend:
     name: Build Backend Application
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-
       - name: Install dependencies
         working-directory: ./backend
         run: npm install
-
       - name: Check for syntax errors
         working-directory: ./backend
         run: node -c server.js
-
       - name: Run tests (if exists)
         working-directory: ./backend
         run: |
@@ -49,22 +40,20 @@ jobs:
           else
             echo "No test script found"
           fi
-
       - name: Build success notification
         run: echo "✅ Backend build completed successfully"
-
   build-and-deploy-frontend:
     name: Build & Deploy Frontend to GitHub Pages
     runs-on: ubuntu-latest
     needs: build-backend
-
     # Tylko deploy z main branch
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Validate HTML
         working-directory: ./frontend
         run: |
@@ -74,39 +63,30 @@ jobs:
             exit 1
           fi
           echo "✅ index.html found"
-
           # Opcjonalnie: walidacja HTML
           echo "File content preview:"
           head -n 10 index.html
-
       - name: Setup Pages
         uses: actions/configure-pages@v4
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: "./frontend"
-
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
       - name: Deployment success
         run: |
           echo "✅ Frontend deployed to GitHub Pages"
           echo "🔗 URL: ${{ steps.deployment.outputs.page_url }}"
-
   validate-frontend-pr:
     name: Validate Frontend (PR only)
     runs-on: ubuntu-latest
-
     # Tylko dla pull requestów
     if: github.event_name == 'pull_request'
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Validate HTML structure
         working-directory: ./frontend
         run: |
